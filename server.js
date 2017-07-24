@@ -19,6 +19,12 @@ MongoClient.connect('mongodb://username:password@ds119533.mlab.com:19533/express
 //body parser allows to render html files in browser
 app.use(bodyParser.urlencoded({extended: true}));
 
+//tells express to make public folder accessible to the public
+app.use(express.static('public'));
+
+//allows the app to read JSON data
+app.use(bodyParser.json());
+
 //sets app to a particular view engine, ejs or handlebars or pug etc
 app.set('view engine', 'ejs');
 
@@ -36,8 +42,25 @@ app.get('/', (req, res) => {
 app.post('/quotes', (req, res) => {
 	db.collection('quotes').save(req.body, (err, result) => {
 		if (err) return console.log(err);
-
 		console.log('saved to database');
 		res.redirect('/')
 	})
+});
+
+app.put('/quotes' , (req, res) => {
+	// Handle put request
+	db.collection('quotes')
+		.findOneAndUpdate({name: 'yoda'}, {
+		$set: {
+			name: req.body.name,
+			quote: req.body.quote
+		}
+		},{
+		sort: {_id: -1},
+			//upsert forces update even if there is no 'yoda' quote found
+			upsert: true
+		}, (err, result) => {
+		if (err) return res.send(err)
+			res.send(result)
+		})
 });
